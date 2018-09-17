@@ -26,6 +26,25 @@ X += 3 # !> already initialized constant X
 
 ### Lexical scopes
 
+#### Variables `defined?`
+
+Variables that appear in code are defined.
+
+```ruby
+a = 1 if false
+defined?(a) # => "local-variable"
+```
+
+However not before they lexically appear:
+
+```ruby
+defined?(a) # => nil
+a = 1 # !> assigned but unused variable - a
+```
+
+
+### Lexical scopes with same name
+
 Consider the following code:
 
 ```ruby
