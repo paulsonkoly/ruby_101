@@ -5,12 +5,13 @@ require 'redcarpet'
 require 'coderay'
 require 'markdown_renderer'
 
-task :default => :book
+task :default => :assemble
+directory 'book'
+file 'book/coderay.css' => 'css/coderay.css' do
+  cp 'css/coderay.css', 'book/coderay.css'
+end
 
-task :book do
-  mkdir 'book'
-  cp_r 'css', 'book/'
-
+task :assemble => ['book', 'book/coderay.css'] do
   rndr = MarkdownRenderer.new(:filter_html => true, :hard_wrap => true)
   options = {
     :fenced_code_blocks => true,
