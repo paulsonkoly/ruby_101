@@ -6,12 +6,12 @@ require 'coderay'
 require 'markdown_renderer'
 
 task :default => :assemble
-directory 'book'
-file 'book/coderay.css' => 'css/coderay.css' do
-  cp 'css/coderay.css', 'book/coderay.css'
+directory 'book/css'
+file 'book/css/coderay.css' => ['book/css', 'css/coderay.css'] do
+  cp 'css/coderay.css', 'book/css/coderay.css'
 end
 
-task :assemble => ['book', 'book/coderay.css'] do
+task :assemble => ['book', 'book/css/coderay.css'] do
   rndr = MarkdownRenderer.new(:filter_html => true, :hard_wrap => true)
   options = {
     :fenced_code_blocks => true,
