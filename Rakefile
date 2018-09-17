@@ -7,8 +7,8 @@ require 'markdown_renderer'
 
 task :default => :assemble
 directory 'book/css'
-file 'book/css/coderay.css' => ['book/css', 'css/coderay.css'] do
-  cp 'css/coderay.css', 'book/css/coderay.css'
+file 'book/css/coderay.css' => ['book/css'] do
+  sh 'coderay stylesheet > book/css/coderay.css'
 end
 
 task :assemble => ['book', 'book/css/coderay.css'] do
