@@ -28,7 +28,7 @@ X += 3 # !> already initialized constant X
 
 #### Variables `defined?`
 
-Variables that appear in code are defined.
+Variables that appear in code on the left hand side of an assignment are defined. Even if the code is not executed. Defined but not initialized variables evaluate to `nil`.
 
 ```ruby
 a = 1 if false
@@ -42,6 +42,40 @@ defined?(a) # => nil
 a = 1 # !> assigned but unused variable - a
 ```
 
+Defined local variables shadow the visible method names. Therefore the following outputs `nil` (regardless of what's defined first, the function or the variable)
+
+```ruby
+foo = 'bar' if false
+
+def foo
+  'not bar'
+end
+
+p foo
+# >> nil
+```
+
+You can still access the method with explicit receiver:
+
+```ruby
+p self.send :foo
+# >> "not bar"
+```
+
+`send` is required here because this is defined top level which makes `foo` a *private* instance method of `Object`. An other way of working around the visibility would have been:
+
+```ruby
+foo = 'bar' if false # !> assigned but unused variable - foo
+
+public
+
+def foo
+  'not bar'
+end
+
+p self.foo
+# >> "not bar"
+```
 
 ### Lexical scopes with same name
 
