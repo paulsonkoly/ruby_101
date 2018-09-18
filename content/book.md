@@ -7,11 +7,17 @@ This document is mainly based on:
 
   - [interview questions][interview]
   - [ruby gotchas][gotchas]
+  - [Ruby under a microscope][microscope]
+  - [Everything you ever wanted to know about constant lookup in Ruby][constant]
 
 [interview]: https://www.toptal.com/ruby/interview-questions/
   "interview questions"
 [gotchas]: https://docs.google.com/presentation/d/1cqdp89_kolr4q1YAQaB-6i5GXip8MHyve8MvQ_1r6_s/edit#slide=id.gd9ccd329_00
   "ruby gotchas"
+[microscope]: http://patshaughnessy.net/ruby-under-a-microscope
+  "Ruby under a microscope"
+[constant]: https://cirw.in/blog/constant-lookup.html
+  "Everything you ever wanted to know about constant lookup in Ruby"
 
 ## Constants
 
