@@ -4,6 +4,7 @@ require 'erb'
 require 'redcarpet'
 require 'coderay'
 require 'markdown_renderer'
+require 'ruby_101/version'
 
 task :default => :assemble
 directory 'book/css'
@@ -24,6 +25,7 @@ task :assemble => ['book', 'book/css/coderay.css'] do
 
   markdown_to_html = Redcarpet::Markdown.new(rndr, options)
   @content = markdown_to_html.render(File.read('content/book.md'))
+  @version = Ruby101::VERSION
   template = File.read('templates/book.html.erb')
   File.write('book/ruby101.html', ERB.new(template).result)
 end
