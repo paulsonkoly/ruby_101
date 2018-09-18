@@ -127,7 +127,7 @@ defined?(a) # => nil
 a = 1 # !> assigned but unused variable - a
 ```
 
-Defined local variables shadow the visible method names. Therefore the following outputs `nil` (regardless of what's defined first, the function or the variable)
+Defined local variables shadow the visible method names. Therefore the following outputs `nil` (regardless of what's defined first, the function or the variable). Explicit parenthesis can force the parser to take the name as a method name.
 
 ```ruby
 foo = 'bar' if false
@@ -136,30 +136,8 @@ def foo
   'not bar'
 end
 
-p foo
-# >> nil
-```
-
-You can still access the method with explicit receiver:
-
-```ruby
-p self.send :foo
-# >> "not bar"
-```
-
-`send` is required here because this is defined top level which makes `foo` a *private* instance method of `Object`. An other way of working around the visibility would have been:
-
-```ruby
-foo = 'bar' if false # !> assigned but unused variable - foo
-
-public
-
-def foo
-  'not bar'
-end
-
-p self.foo
-# >> "not bar"
+foo # => nil
+foo() # => "not bar"
 ```
 
 ## Equality
