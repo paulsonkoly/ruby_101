@@ -1,5 +1,9 @@
-Ruby gotchas
+Ruby 101
 ============
+
+## 101
+
+The title 101 refers to the UK television program [Room 101](https://en.wikipedia.org/wiki/Room_101_(TV_series)).
 
 ## Credits
 
