@@ -19,7 +19,9 @@ This document is mainly based on:
 [constant]: https://cirw.in/blog/constant-lookup.html
   "Everything you ever wanted to know about constant lookup in Ruby"
 
-## Constants
+## Variable types: locals, instance variables, class variables, globals, constants
+
+### Constants
 
 You can change constants, but you get a warning.
 
@@ -35,7 +37,79 @@ X.freeze
 X += 3 # !> already initialized constant X
 ```
 
-### Lexical scopes
+#### Constant visibility and lexical scopes
+
+Constant lookup starts by looking for the constant in the current lexical scope of the `Module` or `Class` that is open. If the constant is not found it continues with `Module.nesting`. If the constant is still not found it tries to find constants following the ancestor chain of the current `Module` or `Class` (not including `self.class`).
+
+##### Lexical scope nesting
+
+`module A::B; end` is different from `module A; module B; end; end;`. To prove this we can look at their nesting.
+
+```ruby
+module A
+end
+
+module A::B
+  def self.blah
+    Module.nesting
+  end
+end
+
+A::B.blah # => [A::B]
+```
+
+whereas
+
+```ruby
+module A
+  module B
+    def self.blah
+      Module.nesting
+    end
+  end
+end
+
+A::B.blah # => [A::B, A]
+```
+
+As the first case doesn't include `A` in the nesting list, any constants defined in the lexical scope of `A` will not be visible in `A::B` resulting in the following error:
+
+```ruby
+module A
+  X = 'constant'
+end
+
+module A::B
+  def self.blah
+    X
+  end
+end
+
+A::B.blah
+# ~> -:7:in `blah': uninitialized constant A::B::X (NameError)
+# ~>  from -:11:in `<main>'
+```
+
+However the nested scope matches (on the contrary to what can be read at [interview][]).
+
+```ruby
+module A
+  module B
+    X = 'constant'
+  end
+end
+
+module A::B
+  def self.blah
+    X
+  end
+end
+
+p A::B.blah
+# >> "constant"
+```
+
+### Local variables
 
 #### Variables `defined?`
 
@@ -87,41 +161,6 @@ end
 p self.foo
 # >> "not bar"
 ```
-
-### Lexical scopes with same name
-
-Consider the following code:
-
-```ruby
-VAL = 'Global'
-
-module Foo
-  VAL = 'Foo Local'
-
-  class Bar
-    def value1
-      VAL
-    end
-  end
-end
-
-class Foo::Bar
-  def value2
-    VAL
-  end
-end
-```
-
-then
-
-```ruby
-Foo::Bar.new.value1 # => "Foo Local"
-Foo::Bar.new.value2 # => "Global"
-```
-
-The `module` keyword (as well as the `class` and `def` keywords) will create a new lexical scope for all of its contents. The above `module Foo` therefore creates the scope `Foo` in which the `VAL` constant equal to `'Foo Local'` is defined. Inside `Foo`, we declare class `Bar`, which creates another new lexical scope (named `Foo::Bar`) which also has access to its parent scope (i.e., `Foo`) and all of its constants.
-
-However, when we then declare `Foo::Bar` (i.e., using ::), we are actually creating yet another lexical scope, which is also named `Foo::Bar` (how's that for confusing!). However, this lexical scope has no parent (i.e., it is entirely independent of the lexical scope `Foo` created earlier) and therefore does not have any access to the contents of the `Foo` scope.
 
 ## Equality
 
