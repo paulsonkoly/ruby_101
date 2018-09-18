@@ -25,6 +25,10 @@ This document is mainly based on:
 
 ## Variable types: locals, instance variables, class variables, globals, constants
 
+### Class variables
+
+They should not be used. They break inheritance, encapsulation etc. Variables are shared with *all* subclasses.
+
 ### Constants
 
 You can change constants, but you get a warning.
@@ -238,10 +242,6 @@ one -1
 # ~> -:35:in `one': wrong number of arguments (given 1, expected 0) (ArgumentError)
 # ~> 	from -:40:in `<main>'
 ```
-
-## Class variables
-
-They should not be used. They break inheritance, encapsulation etc. Variables are shared with *all* subclasses.
 
 ## `super` vs `super()`
 
