@@ -117,7 +117,69 @@ p A::B.blah
 # >> "constant"
 ```
 
-### Local variables
+### Local variable scopes
+
+Local variables can appear in any of the following scopes:
+
+  - top level
+  - module definition
+  - class definition
+  - method definition
+  - block
+
+For all cases except the block case local variables are only visible from the lexical scope that defines them, excluding contained sub-scopes, and containing scopes.
+
+```ruby
+module A
+  x = 3
+  puts "before blah : #{x}"
+  def self.blah
+    x = 5
+    puts "in blah : #{x}"
+    1.times do
+      puts "in block : #{x}"
+      x = 6
+    end
+    puts "after block : #{x}"
+  end
+  puts "after blah : #{x}"
+end
+A.blah
+# >> before blah : 3
+# >> after blah : 3
+# >> in blah : 5
+# >> in block : 5
+# >> after block : 6
+```
+
+In case of a block if the containing lexical scope defines the local variable (see next section on `defined?`), the variable from the outside scope will be used. Otherwise the variable automatically becomes local to the block. 
+
+```ruby
+def foo
+  1.times do
+    bar = 1 # !> assigned but unused variable - bar
+  end
+  p bar
+end
+
+foo
+# ~> -:5:in `foo': undefined local variable or method `bar' for main:Object (NameError)
+# ~> 	from -:8:in `<main>'
+```
+
+We can also explicitly declare local variables block local.
+
+```ruby
+def foo
+  bar = 1 # !> assigned but unused variable - bar
+  1.times do |;bar| # !> shadowing outer local variable - bar
+    p bar
+  end
+end
+
+foo
+# >> nil
+```
 
 #### Variables `defined?`
 
@@ -146,6 +208,17 @@ end
 
 foo # => nil
 foo() # => "not bar"
+```
+
+#### `local_variables` is confusing
+
+`local_variables` include not yet defined variable names, but we can't use them:
+
+```ruby
+local_variables # => [:bar]
+p bar
+bar = 1 # !> assigned but unused variable - bar
+# ~> -:2:in `<main>': undefined local variable or method `bar' for main:Object (NameError)
 ```
 
 ## Equality
