@@ -221,6 +221,55 @@ bar = 1 # !> assigned but unused variable - bar
 # ~> -:2:in `<main>': undefined local variable or method `bar' for main:Object (NameError)
 ```
 
+#### Files and TOPLEVEL_BINDING
+
+In the top level lexical scope of our program we can define local variables and
+these go to TOPLEVEL_BINDING. However files also make local variables lexically
+bound. This results in confusing results.
+
+In `a.rb` we can access local variables either by using their name, or using
+the TOPLEVEL_BINDING.
+
+```ruby
+# a1.rb
+a = 1
+TOPLEVEL_BINDING.local_variable_get(:a) # => 1
+```
+
+or this seems to be the same at the first glance:
+
+```ruby
+# a2.rb
+a = 2
+TOPLEVEL_BINDING.local_variable_set(:a, 1) # => 1
+a # => 1
+```
+
+However the difference between TOPLEVEL_BINDING and the file local variables
+become apparent, when we require these files:
+
+```ruby
+# b.rb
+require 'a1.rb'
+TOPLEVEL_BINDING.local_variable_get(:a) # => 
+# ~> /tmp/a1.rb:3:in `local_variable_get': local variable `a' is not defined for #<Binding:0x0000556f87388a78> (NameError)
+# ~> 	from /tmp/a.rb:3:in `<top (required)>'
+# ~> 	from /usr/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+# ~> 	from /usr/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+# ~> 	from -:1:in `<main>'
+```
+
+but
+
+```ruby
+# b.rb
+require 'a2.rb'
+
+TOPLEVEL_BINDING.local_variable_get(:a) # => 1
+```
+
+Accessing local variables from other files by name is not possible.
+
 ## Equality
 
  - `==`
