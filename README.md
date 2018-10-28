@@ -1,6 +1,6 @@
 # Ruby101
 
-This isn't really a book about Ruby, more like a dumping ground for random things I found amusing about Ruby.
+This isn't really a book about Ruby, more like a dumping ground for random things I found baffling about Ruby.
 
 ## Generating the HTML
 
