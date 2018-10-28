@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Ruby 101</title>
+    <link rel="stylesheet" href="css/coderay.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <style type="text/css" media="screen">
+      @import url(http://fonts.googleapis.com/css?family=Lato);
+
+      body {
+        font: 11pt "Gill Sans", "Lato", serif;
+        margin: 5em 10em 5em 5em;
+      }
+
+    </style>
+  </head>
+  <body>
+    <h1>Ruby 101</h1>
+
+<h2>101</h2>
+
+<p>The title 101 refers to the UK television program <a href="https://en.wikipedia.org/wiki/Room_101_(TV_series)">Room 101</a>.</p>
+
+<h2>Credits</h2>
+
+<p>This document is mainly based on:</p>
+
+<ul>
+<li><a href="https://www.toptal.com/ruby/interview-questions/" title="interview questions">interview questions</a></li>
+<li><a href="https://docs.google.com/presentation/d/1cqdp89_kolr4q1YAQaB-6i5GXip8MHyve8MvQ_1r6_s/edit#slide=id.gd9ccd329_00" title="ruby gotchas">ruby gotchas</a></li>
+<li><a href="http://patshaughnessy.net/ruby-under-a-microscope" title="Ruby under a microscope">Ruby under a microscope</a></li>
+<li><a href="https://cirw.in/blog/constant-lookup.html" title="Everything you ever wanted to know about constant lookup in Ruby">Everything you ever wanted to know about constant lookup in Ruby</a></li>
+</ul>
+
+<h2>Variable types: locals, instance variables, class variables, globals, constants</h2>
+
+<h3>Class variables</h3>
+
+<p>They should not be used. They break inheritance, encapsulation etc. Variables are shared with <em>all</em> subclasses.</p>
+
+<h3>Constants</h3>
+
+<p>You can change constants, but you get a warning.</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="constant">X</span> = <span class="integer">3</span> <span class="comment"># !&gt; previous definition of X was here</span>
+<span class="constant">X</span> = <span class="integer">5</span> <span class="comment"># !&gt; already initialized constant X</span>
+</pre></div>
+</div>
+
+<p>even after freezing:</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="constant">X</span>.freeze
+<span class="constant">X</span> += <span class="integer">3</span> <span class="comment"># !&gt; already initialized constant X</span>
+</pre></div>
+</div>
+
+<h4>Constant visibility and lexical scopes</h4>
+
+<p>Constant lookup starts by looking for the constant in the current lexical scope of the <code>Module</code> or <code>Class</code> that is open. If the constant is not found it continues with <code>Module.nesting</code>. If the constant is still not found it tries to find constants following the ancestor chain of the current <code>Module</code> or <code>Class</code> (not including <code>self.class</code>).</p>
+
+<h5>Lexical scope nesting</h5>
+
+<p><code>module A::B; end</code> is different from <code>module A; module B; end; end;</code>. To prove this we can look at their nesting.</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">module</span> <span class="class">A</span>
+<span class="keyword">end</span>
+
+<span class="keyword">module</span> <span class="class">A::B</span>
+  <span class="keyword">def</span> <span class="predefined-constant">self</span>.<span class="function">blah</span>
+    <span class="constant">Module</span>.nesting
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="constant">A</span>::<span class="constant">B</span>.blah <span class="comment"># =&gt; [A::B]</span>
+</pre></div>
+</div>
+
+<p>whereas</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">module</span> <span class="class">A</span>
+  <span class="keyword">module</span> <span class="class">B</span>
+    <span class="keyword">def</span> <span class="predefined-constant">self</span>.<span class="function">blah</span>
+      <span class="constant">Module</span>.nesting
+    <span class="keyword">end</span>
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="constant">A</span>::<span class="constant">B</span>.blah <span class="comment"># =&gt; [A::B, A]</span>
+</pre></div>
+</div>
+
+<p>As the first case doesn&#39;t include <code>A</code> in the nesting list, any constants defined in the lexical scope of <code>A</code> will not be visible in <code>A::B</code> resulting in the following error:</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">module</span> <span class="class">A</span>
+  <span class="constant">X</span> = <span class="string"><span class="delimiter">'</span><span class="content">constant</span><span class="delimiter">'</span></span>
+<span class="keyword">end</span>
+
+<span class="keyword">module</span> <span class="class">A::B</span>
+  <span class="keyword">def</span> <span class="predefined-constant">self</span>.<span class="function">blah</span>
+    <span class="constant">X</span>
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="constant">A</span>::<span class="constant">B</span>.blah
+<span class="comment"># ~&gt; -:7:in `blah': uninitialized constant A::B::X (NameError)</span>
+<span class="comment"># ~&gt;  from -:11:in `&lt;main&gt;'</span>
+</pre></div>
+</div>
+
+<p>However the nested scope matches (on the contrary to what can be read at <a href="https://www.toptal.com/ruby/interview-questions/" title="interview questions">interview</a>).</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">module</span> <span class="class">A</span>
+  <span class="keyword">module</span> <span class="class">B</span>
+    <span class="constant">X</span> = <span class="string"><span class="delimiter">'</span><span class="content">constant</span><span class="delimiter">'</span></span>
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">module</span> <span class="class">A::B</span>
+  <span class="keyword">def</span> <span class="predefined-constant">self</span>.<span class="function">blah</span>
+    <span class="constant">X</span>
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+p <span class="constant">A</span>::<span class="constant">B</span>.blah
+<span class="comment"># &gt;&gt; &quot;constant&quot;</span>
+</pre></div>
+</div>
+
+<h3>Local variable scopes</h3>
+
+<p>Local variables can appear in any of the following scopes:</p>
+
+<ul>
+<li>top level</li>
+<li>module definition</li>
+<li>class definition</li>
+<li>method definition</li>
+<li>block</li>
+</ul>
+
+<p>For all cases except the block case local variables are only visible from the lexical scope that defines them, excluding contained sub-scopes, and containing scopes.</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">module</span> <span class="class">A</span>
+  x = <span class="integer">3</span>
+  puts <span class="string"><span class="delimiter">&quot;</span><span class="content">before blah : </span><span class="inline"><span class="inline-delimiter">#{</span>x<span class="inline-delimiter">}</span></span><span class="delimiter">&quot;</span></span>
+  <span class="keyword">def</span> <span class="predefined-constant">self</span>.<span class="function">blah</span>
+    x = <span class="integer">5</span>
+    puts <span class="string"><span class="delimiter">&quot;</span><span class="content">in blah : </span><span class="inline"><span class="inline-delimiter">#{</span>x<span class="inline-delimiter">}</span></span><span class="delimiter">&quot;</span></span>
+    <span class="integer">1</span>.times <span class="keyword">do</span>
+      puts <span class="string"><span class="delimiter">&quot;</span><span class="content">in block : </span><span class="inline"><span class="inline-delimiter">#{</span>x<span class="inline-delimiter">}</span></span><span class="delimiter">&quot;</span></span>
+      x = <span class="integer">6</span>
+    <span class="keyword">end</span>
+    puts <span class="string"><span class="delimiter">&quot;</span><span class="content">after block : </span><span class="inline"><span class="inline-delimiter">#{</span>x<span class="inline-delimiter">}</span></span><span class="delimiter">&quot;</span></span>
+  <span class="keyword">end</span>
+  puts <span class="string"><span class="delimiter">&quot;</span><span class="content">after blah : </span><span class="inline"><span class="inline-delimiter">#{</span>x<span class="inline-delimiter">}</span></span><span class="delimiter">&quot;</span></span>
+<span class="keyword">end</span>
+<span class="constant">A</span>.blah
+<span class="comment"># &gt;&gt; before blah : 3</span>
+<span class="comment"># &gt;&gt; after blah : 3</span>
+<span class="comment"># &gt;&gt; in blah : 5</span>
+<span class="comment"># &gt;&gt; in block : 5</span>
+<span class="comment"># &gt;&gt; after block : 6</span>
+</pre></div>
+</div>
+
+<p>In case of a block if the containing lexical scope defines the local variable (see next section on <code>defined?</code>), the variable from the outside scope will be used. Otherwise the variable automatically becomes local to the block. </p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">def</span> <span class="function">foo</span>
+  <span class="integer">1</span>.times <span class="keyword">do</span>
+    bar = <span class="integer">1</span> <span class="comment"># !&gt; assigned but unused variable - bar</span>
+  <span class="keyword">end</span>
+  p bar
+<span class="keyword">end</span>
+
+foo
+<span class="comment"># ~&gt; -:5:in `foo': undefined local variable or method `bar' for main:Object (NameError)</span>
+<span class="comment"># ~&gt;    from -:8:in `&lt;main&gt;'</span>
+</pre></div>
+</div>
+
+<p>We can also explicitly declare local variables block local.</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">def</span> <span class="function">foo</span>
+  bar = <span class="integer">1</span> <span class="comment"># !&gt; assigned but unused variable - bar</span>
+  <span class="integer">1</span>.times <span class="keyword">do</span> |;bar| <span class="comment"># !&gt; shadowing outer local variable - bar</span>
+    p bar
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+foo
+<span class="comment"># &gt;&gt; nil</span>
+</pre></div>
+</div>
+
+<h4>Variables <code>defined?</code></h4>
+
+<p>Variables that appear in code on the left hand side of an assignment are defined. Even if the code is not executed. Defined but not initialized variables evaluate to <code>nil</code>.</p>
+<div class="CodeRay">
+  <div class="code"><pre>a = <span class="integer">1</span> <span class="keyword">if</span> <span class="predefined-constant">false</span>
+<span class="keyword">defined?</span>(a) <span class="comment"># =&gt; &quot;local-variable&quot;</span>
+</pre></div>
+</div>
+
+<p>However not before they lexically appear:</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">defined?</span>(a) <span class="comment"># =&gt; nil</span>
+a = <span class="integer">1</span> <span class="comment"># !&gt; assigned but unused variable - a</span>
+</pre></div>
+</div>
+
+<p>Defined local variables shadow the visible method names. Therefore the following outputs <code>nil</code> (regardless of what&#39;s defined first, the function or the variable). Explicit parenthesis can force the parser to take the name as a method name.</p>
+<div class="CodeRay">
+  <div class="code"><pre>foo = <span class="string"><span class="delimiter">'</span><span class="content">bar</span><span class="delimiter">'</span></span> <span class="keyword">if</span> <span class="predefined-constant">false</span>
+
+<span class="keyword">def</span> <span class="function">foo</span>
+  <span class="string"><span class="delimiter">'</span><span class="content">not bar</span><span class="delimiter">'</span></span>
+<span class="keyword">end</span>
+
+foo <span class="comment"># =&gt; nil</span>
+foo() <span class="comment"># =&gt; &quot;not bar&quot;</span>
+</pre></div>
+</div>
+
+<h4><code>local_variables</code> is confusing</h4>
+
+<p><code>local_variables</code> include not yet defined variable names, but we can&#39;t use them:</p>
+<div class="CodeRay">
+  <div class="code"><pre>local_variables <span class="comment"># =&gt; [:bar]</span>
+p bar
+bar = <span class="integer">1</span> <span class="comment"># !&gt; assigned but unused variable - bar</span>
+<span class="comment"># ~&gt; -:2:in `&lt;main&gt;': undefined local variable or method `bar' for main:Object (NameError)</span>
+</pre></div>
+</div>
+
+<h4>Files and TOPLEVEL_BINDING</h4>
+
+<p>In the top level lexical scope of our program we can define local variables and<br>
+these go to TOPLEVEL_BINDING. However files also make local variables lexically<br>
+bound. This results in confusing results.</p>
+
+<p>In <code>a.rb</code> we can access local variables either by using their name, or using<br>
+the TOPLEVEL_BINDING.</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="comment"># a1.rb</span>
+a = <span class="integer">1</span>
+<span class="predefined-constant">TOPLEVEL_BINDING</span>.local_variable_get(<span class="symbol">:a</span>) <span class="comment"># =&gt; 1</span>
+</pre></div>
+</div>
+
+<p>or this seems to be the same at the first glance:</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="comment"># a2.rb</span>
+a = <span class="integer">2</span>
+<span class="predefined-constant">TOPLEVEL_BINDING</span>.local_variable_set(<span class="symbol">:a</span>, <span class="integer">1</span>) <span class="comment"># =&gt; 1</span>
+a <span class="comment"># =&gt; 1</span>
+</pre></div>
+</div>
+
+<p>However the difference between TOPLEVEL_BINDING and the file local variables<br>
+become apparent, when we require these files:</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="comment"># b.rb</span>
+require <span class="string"><span class="delimiter">'</span><span class="content">a1.rb</span><span class="delimiter">'</span></span>
+<span class="predefined-constant">TOPLEVEL_BINDING</span>.local_variable_get(<span class="symbol">:a</span>) <span class="comment"># =&gt; </span>
+<span class="comment"># ~&gt; /tmp/a1.rb:3:in `local_variable_get': local variable `a' is not defined for #&lt;Binding:0x0000556f87388a78&gt; (NameError)</span>
+<span class="comment"># ~&gt;    from /tmp/a.rb:3:in `&lt;top (required)&gt;'</span>
+<span class="comment"># ~&gt;    from /usr/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require'</span>
+<span class="comment"># ~&gt;    from /usr/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require'</span>
+<span class="comment"># ~&gt;    from -:1:in `&lt;main&gt;'</span>
+</pre></div>
+</div>
+
+<p>but</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="comment"># b.rb</span>
+require <span class="string"><span class="delimiter">'</span><span class="content">a2.rb</span><span class="delimiter">'</span></span>
+
+<span class="predefined-constant">TOPLEVEL_BINDING</span>.local_variable_get(<span class="symbol">:a</span>) <span class="comment"># =&gt; 1</span>
+</pre></div>
+</div>
+
+<p>Accessing local variables from other files by name is not possible.</p>
+
+<h2>Equality</h2>
+
+<ul>
+<li><code>==</code></li>
+</ul>
+
+<p>The normal equal by value operator. Define it in a strange way and you might break ruby semantics.</p>
+<div class="CodeRay">
+  <div class="code"><pre>   <span class="keyword">class</span> <span class="class">X</span>
+     <span class="keyword">def</span> <span class="function">==</span>(other)
+       <span class="predefined-constant">false</span>
+     <span class="keyword">end</span>
+   <span class="keyword">end</span>
+
+   a = <span class="constant">X</span>.new
+   [a].include?(a) <span class="comment"># =&gt; true</span>
+</pre></div>
+</div>
+
+<ul>
+<li><code>===</code></li>
+</ul>
+
+<p>Case equality.</p>
+
+<ul>
+<li><code>eql?</code></li>
+</ul>
+
+<p>Equality with types.</p>
+<div class="CodeRay">
+  <div class="code"><pre>   <span class="integer">1</span> == <span class="float">1.0</span> <span class="comment"># =&gt; true</span>
+   <span class="integer">1</span>.eql? <span class="float">1.0</span> <span class="comment"># =&gt; false</span>
+</pre></div>
+</div>
+
+<ul>
+<li><code>equal?</code></li>
+</ul>
+
+<p>Object equality. Equals if it&#39;s the same object instance (.object_id matches).</p>
+
+<h2><code>and</code>, <code>or</code>, <code>||</code>, <code>&amp;&amp;</code></h2>
+
+<p>The main difference is precedence:</p>
+<div class="CodeRay">
+  <div class="code"><pre>a = <span class="predefined-constant">true</span> <span class="keyword">and</span> <span class="predefined-constant">false</span>
+a  <span class="comment"># =&gt; true</span>
+b = <span class="predefined-constant">true</span> &amp;&amp; <span class="predefined-constant">false</span>
+b  <span class="comment"># =&gt; false</span>
+</pre></div>
+</div>
+
+<p>as <code>a = true and false</code> is the same as <code>(a = true) and false</code>.</p>
+
+<h2>Whitespace nonsense</h2>
+
+<h3>Whitespace before method arguments</h3>
+
+<p>Method calls with parenthesis omitted for single arguments are OK:</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">def</span> <span class="function">foo</span>(arg)
+  arg
+<span class="keyword">end</span>
+
+foo <span class="integer">1</span> <span class="comment"># =&gt; 1</span>
+foo(<span class="integer">1</span>) <span class="comment"># =&gt; 1</span>
+foo (<span class="integer">1</span>) <span class="comment"># =&gt; 1</span>
+</pre></div>
+</div>
+
+<p>Here <code>(1)</code> is a single expression evaluating <code>1</code> therefore it&#39;s equivalent to the first line. Therefore with two argument it breaks:</p>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">def</span> <span class="function">foo2</span>(arg1, arg2)
+  arg2
+<span class="keyword">end</span>
+
+foo2 <span class="integer">1</span>, <span class="integer">2</span> <span class="comment"># =&gt; 2</span>
+foo2(<span class="integer">1</span>, <span class="integer">2</span>) <span class="comment"># =&gt; 2</span>
+foo2 (<span class="integer">1</span>, <span class="integer">2</span>)
+<span class="comment"># ~&gt; -:37: syntax error, unexpected ',', expecting ')'</span>
+<span class="comment"># ~&gt; ...7178590_6708_297553 = (foo2 (1, 2));$stderr.puts(&quot;!XMP153717...</span>
+<span class="comment"># ~&gt; ...                              ^</span>
+<span class="comment"># ~&gt; -:37: syntax error, unexpected ')', expecting end-of-input</span>
+<span class="comment"># ~&gt; ... _xmp_1537178590_6708_297553;));</span>
+<span class="comment"># ~&gt; ...                              ^</span>
+</pre></div>
+</div>
+
+<h3>Whitespace with unary <code>-</code></h3>
+<div class="CodeRay">
+  <div class="code"><pre><span class="keyword">def</span> <span class="function">one</span>
+  <span class="integer">1</span>
+<span class="keyword">end</span>
+
+one - <span class="integer">1</span> <span class="comment"># =&gt; 0</span>
+one <span class="integer">-1</span>
+<span class="comment"># !&gt; ambiguous first argument; put parentheses or a space even after `-' operator</span>
+<span class="comment"># ~&gt; -:35:in `one': wrong number of arguments (given 1, expected 0) (ArgumentError)</span>
+<span class="comment"># ~&gt;    from -:40:in `&lt;main&gt;'</span>
+</pre></div>
+</div>
+
+<h2><code>super</code> vs <code>super()</code></h2>
+
+<p><code>super</code> is a keyword, not a method call. It&#39;s semantics are slightly different from a normal call: with no argument it passes the current methods arguments to the parent class&#39;s method.</p>
+
+<h2><code>.freeze</code> is shallow</h2>
+<div class="CodeRay">
+  <div class="code"><pre>a = [<span class="string"><span class="delimiter">'</span><span class="content">apple</span><span class="delimiter">'</span></span>]
+a.freeze
+a &lt;&lt; <span class="integer">1</span>
+
+<span class="comment"># ~&gt; -:3:in `&lt;main&gt;': can't modify frozen Array (FrozenError)</span>
+</pre></div>
+</div>
+
+<p>but this is fine:</p>
+<div class="CodeRay">
+  <div class="code"><pre>a[<span class="integer">0</span>].concat(<span class="string"><span class="delimiter">'</span><span class="content">gate</span><span class="delimiter">'</span></span>)
+a <span class="comment"># =&gt; [&quot;applegate&quot;]</span>
+</pre></div>
+</div>
+
+<h2>default values</h2>
+
+<p>Default values point to the same object:</p>
+<div class="CodeRay">
+  <div class="code"><pre>a = <span class="constant">Array</span>.new(<span class="integer">3</span>, <span class="string"><span class="delimiter">'</span><span class="content">apple</span><span class="delimiter">'</span></span>)
+a[<span class="integer">0</span>].concat(<span class="string"><span class="delimiter">'</span><span class="content">gate</span><span class="delimiter">'</span></span>)
+a <span class="comment"># =&gt; [&quot;applegate&quot;, &quot;applegate&quot;, &quot;applegate&quot;]</span>
+</pre></div>
+</div>
+
+<p>Same with hash defaults.</p>
+
+
+    <br />
+    <hr />
+    <div style='text-align: right;'>
+      Version: 0.1.0
+    </div>
+  </body>
+</html>
