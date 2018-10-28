@@ -15,4 +15,4 @@ Now the HTML format should be in `docs/`.
 
 ## github.io
 
-The document is publised on [github.io](https://ruby_101.github.io/).
+The document is publised on [github.io](https://phaul.github.io/ruby_101).
