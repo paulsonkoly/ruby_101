@@ -11,8 +11,8 @@ bundle install
 bundle exec rake
 ```
 
-Now the HTML format should be in `book/`.
+Now the HTML format should be in `docs/`.
 
-## github render
+## github.io
 
-github renders the markdown files to HTML so a live preview of the content can be viewed [here](https://github.com/phaul/ruby_101/blob/master/content/book.md). However this is a side effect of using github, not the intended format of this document.
+The document is publised on [github.io](https://ruby_101.github.io/).
