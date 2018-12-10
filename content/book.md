@@ -117,7 +117,31 @@ p A::B.blah
 # >> "constant"
 ```
 
-### Local variable scopes
+### Local variables
+
+Local variables are declared by their first assignment. This might be syntactically ambiguous, like in the following example:
+
+```ruby
+class X
+  def initialize
+    @foo = 1
+  end
+
+  attr_accessor :foo
+
+  def boo
+    foo = 10 # !> assigned but unused variable - foo
+  end
+end
+
+x = X.new
+x.boo
+x.foo # => 1
+```
+
+Here the intention was to modify `@foo` via the attr_accessor, however ruby interprets the assignment as a local variable declaration. To override this behaviour one can explicitly add _self_, `self.foo = 10` would have worked as expected. Also note that the same behaviour is present with the `+=`, `-=` etc operators, as those are just short hand forms of `=` expression ie. `foo += 10` is equivalent to `foo = foo + 10`.
+
+#### Local variable scopes
 
 Local variables can appear in any of the following scopes:
 
@@ -181,7 +205,7 @@ foo
 # >> nil
 ```
 
-#### Variables `defined?`
+##### Variables `defined?`
 
 Variables that appear in code on the left hand side of an assignment are defined. Even if the code is not executed. Defined but not initialized variables evaluate to `nil`.
 
@@ -210,7 +234,7 @@ foo # => nil
 foo() # => "not bar"
 ```
 
-#### `local_variables` is confusing
+##### `local_variables` is confusing
 
 `local_variables` include not yet defined variable names, but we can't use them:
 
