@@ -357,7 +357,7 @@ foo(1) # => 1
 foo (1) # => 1
 ```
 
-Here `(1)` is a single expression evaluating `1` therefore it's equivalent to the first line. Therefore with two argument it breaks:
+Here `(1)` is a single expression evaluating to `1` therefore it's equivalent to the first line. Therefore with two argument it breaks:
 
 ```ruby
 def foo2(arg1, arg2)
