@@ -339,7 +339,16 @@ require <span class="string"><span class="delimiter">'</span><span class="conten
 <li><code>===</code></li>
 </ul>
 
-<p>Case equality.</p>
+<p>Case equality is type dependent. In most cases it expresses that the left hand side contains the right hand side, and some cases it expresses that they are equal. It&#39;s natural to think that <code>a == b</code> implies <code>a === b</code> in all cases but it&#39;s not true.</p>
+<div class="CodeRay">
+  <div class="code"><pre>   c = <span class="constant">Integer</span>
+   <span class="keyword">case</span> c
+   <span class="keyword">when</span> <span class="constant">String</span> <span class="keyword">then</span> <span class="string"><span class="delimiter">'</span><span class="content">String</span><span class="delimiter">'</span></span>
+   <span class="keyword">when</span> <span class="constant">Integer</span> <span class="keyword">then</span> <span class="string"><span class="delimiter">'</span><span class="content">Integer</span><span class="delimiter">'</span></span>
+   <span class="keyword">else</span> <span class="string"><span class="delimiter">'</span><span class="content">none of the above</span><span class="delimiter">'</span></span>
+   <span class="keyword">end</span> <span class="comment"># =&gt; &quot;none of the above&quot;</span>
+</pre></div>
+</div>
 
 <ul>
 <li><code>eql?</code></li>

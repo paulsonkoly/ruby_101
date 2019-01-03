@@ -313,7 +313,16 @@ Accessing local variables from other files by name is not possible.
 
  - `===`
 
-   Case equality.
+   Case equality is type dependent. In most cases it expresses that the left hand side contains the right hand side, and some cases it expresses that they are equal. It's natural to think that `a == b` implies `a === b` in all cases but it's not true.
+
+   ```ruby
+   c = Integer
+   case c
+   when String then 'String'
+   when Integer then 'Integer'
+   else 'none of the above'
+   end # => "none of the above"
+   ```
 
  - `eql?`
 
