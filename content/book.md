@@ -141,6 +141,23 @@ x.foo # => 1
 
 Here the intention was to modify `@foo` via the attr_accessor, however ruby interprets the assignment as a local variable declaration. To override this behaviour one can explicitly add _self_, `self.foo = 10` would have worked as expected. Also note that the same behaviour is present with the `+=`, `-=` etc operators, as those are just short hand forms of `=` expression ie. `foo += 10` is equivalent to `foo = foo + 10`.
 
+#### Binding#local_variable_set
+
+Binding#local_variable_set doesn't declare the local variable in the local lexical scope.
+
+```ruby
+binding.local_variable_set :a, 1
+a # => NameError: undefined local variable or method `a' for main:Object
+```
+
+However if the variable was already declared then we can change it.
+
+```ruby
+a = 2
+binding.local_variable_set :a, 1
+a # => 1
+```
+
 #### Local variable scopes
 
 Local variables can appear in any of the following scopes:
