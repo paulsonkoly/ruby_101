@@ -13,6 +13,7 @@ This document is mainly based on:
   - [ruby gotchas][gotchas]
   - [Ruby under a microscope][microscope]
   - [Everything you ever wanted to know about constant lookup in Ruby][constant]
+  - [API docs][api]
 
 [interview]: https://www.toptal.com/ruby/interview-questions/
   "interview questions"
@@ -22,6 +23,8 @@ This document is mainly based on:
   "Ruby under a microscope"
 [constant]: https://cirw.in/blog/constant-lookup.html
   "Everything you ever wanted to know about constant lookup in Ruby"
+[api]: https://ruby-doc.org/core-2.6.4/
+  "Official ruby stdlib documentation"
 
 ## Variable types: locals, instance variables, class variables, globals, constants
 
@@ -341,9 +344,9 @@ Accessing local variables from other files by name is not possible.
    end # => "none of the above"
    ```
 
- - `eql?`
+ - `eql?`, is hash key/value in a set equality
 
-   Equality with types.
+The `eql?` method returns true if obj and other refer to the same hash key. This is used by Hash to test members for equality. For objects of class Object, `eql?` is synonymous with `==.` Subclasses normally continue this tradition by aliasing `eql?` to their overridden `==` method, but there are exceptions. `Numeric` types, for example, perform type conversion across `==,` but not across `eql?` [api]
 
    ```ruby
    1 == 1.0 # => true

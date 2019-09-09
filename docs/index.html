@@ -41,6 +41,7 @@
 <li><a href="https://docs.google.com/presentation/d/1cqdp89_kolr4q1YAQaB-6i5GXip8MHyve8MvQ_1r6_s/edit#slide=id.gd9ccd329_00" title="ruby gotchas">ruby gotchas</a></li>
 <li><a href="http://patshaughnessy.net/ruby-under-a-microscope" title="Ruby under a microscope">Ruby under a microscope</a></li>
 <li><a href="https://cirw.in/blog/constant-lookup.html" title="Everything you ever wanted to know about constant lookup in Ruby">Everything you ever wanted to know about constant lookup in Ruby</a></li>
+<li><a href="https://ruby-doc.org/core-2.6.4/" title="Official ruby stdlib documentation">API docs</a></li>
 </ul>
 
 <h2>Variable types: locals, instance variables, class variables, globals, constants</h2>
@@ -160,6 +161,23 @@ x.foo <span class="comment"># =&gt; 1</span>
 </div>
 
 <p>Here the intention was to modify <code>@foo</code> via the attr_accessor, however ruby interprets the assignment as a local variable declaration. To override this behaviour one can explicitly add <em>self</em>, <code>self.foo = 10</code> would have worked as expected. Also note that the same behaviour is present with the <code>+=</code>, <code>-=</code> etc operators, as those are just short hand forms of <code>=</code> expression ie. <code>foo += 10</code> is equivalent to <code>foo = foo + 10</code>.</p>
+
+<h4>Binding#local_variable_set</h4>
+
+<p>Binding#local_variable_set doesn&#39;t declare the local variable in the local lexical scope.</p>
+<div class="CodeRay">
+  <div class="code"><pre>binding.local_variable_set <span class="symbol">:a</span>, <span class="integer">1</span>
+a <span class="comment"># =&gt; NameError: undefined local variable or method `a' for main:Object</span>
+</pre></div>
+</div>
+
+<p>However if the variable was already declared then we can change it.</p>
+<div class="CodeRay">
+  <div class="code"><pre>a = <span class="integer">2</span>
+binding.local_variable_set <span class="symbol">:a</span>, <span class="integer">1</span>
+a <span class="comment"># =&gt; 1</span>
+</pre></div>
+</div>
 
 <h4>Local variable scopes</h4>
 
@@ -351,10 +369,10 @@ require <span class="string"><span class="delimiter">'</span><span class="conten
 </div>
 
 <ul>
-<li><code>eql?</code></li>
+<li><code>eql?</code>, is hash key/value in a set equality</li>
 </ul>
 
-<p>Equality with types.</p>
+<p>The <code>eql?</code> method returns true if obj and other refer to the same hash key. This is used by Hash to test members for equality. For objects of class Object, <code>eql?</code> is synonymous with <code>==.</code> Subclasses normally continue this tradition by aliasing <code>eql?</code> to their overridden <code>==</code> method, but there are exceptions. <code>Numeric</code> types, for example, perform type conversion across <code>==,</code> but not across <code>eql?</code> <a href="https://ruby-doc.org/core-2.6.4/" title="Official ruby stdlib documentation">api</a></p>
 <div class="CodeRay">
   <div class="code"><pre>   <span class="integer">1</span> == <span class="float">1.0</span> <span class="comment"># =&gt; true</span>
    <span class="integer">1</span>.eql? <span class="float">1.0</span> <span class="comment"># =&gt; false</span>
