@@ -14,6 +14,7 @@ This document is mainly based on:
   - [Ruby under a microscope][microscope]
   - [Everything you ever wanted to know about constant lookup in Ruby][constant]
   - [API docs][api]
+  - [expression vs statement][exp_vs_stm]
 
 [interview]: https://www.toptal.com/ruby/interview-questions/
   "interview questions"
@@ -25,6 +26,8 @@ This document is mainly based on:
   "Everything you ever wanted to know about constant lookup in Ruby"
 [api]: https://ruby-doc.org/core-2.6.4/
   "Official ruby stdlib documentation"
+[exp_vs_stm]:https://github.com/ruby/ruby/commit/29c1e9a0d4c855781853f0ad41b0125f42cf504d
+  "Jeremy Evans' CI to ruby documentation"
 
 ## Variable types: locals, instance variables, class variables, globals, constants
 
@@ -313,6 +316,25 @@ TOPLEVEL_BINDING.local_variable_get(:a) # => 1
 ```
 
 Accessing local variables from other files by name is not possible.
+
+## Expressions vs. statements
+
+The modifier `if`, `unless` etc. statements are not expressions as explained in [exp_vs_stm]. The following code results in syntax error:
+
+```ruby
+puts('nope' if true)
+
+# ~> 	Syntax Error: :2
+# ~> 	unexpected token kIF_MOD
+```
+
+but this is fine:
+
+```ruby
+puts(('nope' if true))
+
+# >> nope
+```
 
 ## Equality
 
